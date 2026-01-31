@@ -1,0 +1,311 @@
+================================================================================
+TERMINALREWIND CHEAT SHEET
+================================================================================
+
+QUICK START
+-----------
+1. Install: pip install -e .
+2. First run: trewind --help
+3. Start session: trewind start --name "My Work"
+4. Log commands: trewind log "command" --exit-code 0
+5. View history: trewind show
+
+================================================================================
+COMMON COMMANDS
+--------------------------------------------------------------------------------
+
+Show Recent Commands:
+  trewind show                        # Last 20 commands
+  trewind show --limit 50             # Last 50 commands
+  trewind show --since "10 minutes ago"
+  trewind show --since "1 hour ago"
+  trewind show --errors               # Only failed commands
+  trewind show --verbose              # Include file changes
+  trewind show --session abc123       # Filter by session
+
+Search Commands:
+  trewind search "npm"                # Full-text search
+  trewind search "error"              # Search in outputs too
+  trewind search "git" --verbose      # Include output snippets
+  trewind search "build" --limit 100  # More results
+
+Log Commands:
+  trewind log "git status"            # Basic log (assumes success)
+  trewind log "cmd" --exit-code 0     # Explicit exit code
+  trewind log "cmd" --exit-code 1     # Failed command
+  trewind log "cmd" --output "..."    # With output
+  trewind log "cmd" --error "..."     # With error output
+  trewind log "cmd" --cwd /path       # Specific directory
+
+Record & Execute:
+  trewind record "ls -la" --execute   # Run and record
+  trewind record "cmd" --execute --track-files  # Track file changes
+  trewind record "cmd" -x -t          # Short flags
+
+================================================================================
+SESSION MANAGEMENT
+--------------------------------------------------------------------------------
+
+Start a Session:
+  trewind start                       # Anonymous session
+  trewind start --name "Bug Fix"      # Named session
+  trewind start --agent ATLAS         # With agent name
+  trewind start -n "Task" -a CLIO     # Short flags
+
+End Session:
+  trewind end                         # End current session
+
+List Sessions:
+  trewind sessions                    # List recent sessions
+  trewind sessions --limit 20         # More sessions
+
+================================================================================
+EXPORTING
+--------------------------------------------------------------------------------
+
+Markdown Export:
+  trewind export                      # Default: markdown to stdout
+  trewind export --format markdown    # Explicit markdown
+  trewind export > session.md         # Save to file
+
+JSON Export:
+  trewind export --format json        # JSON format
+  trewind export -f json > data.json  # Save to file
+
+Agent Handoff:
+  trewind export --for-agent CLIO     # Formatted for agent
+  trewind export --for-agent ATLAS --limit 30
+
+Options:
+  --session abc123                    # Specific session
+  --limit 50                          # Max commands
+  --no-output                         # Exclude command outputs
+
+================================================================================
+ROLLBACK
+--------------------------------------------------------------------------------
+
+Preview Rollback (Safe):
+  trewind undo --dry-run              # Preview last command rollback
+  trewind undo 123 --dry-run          # Preview specific command
+
+Apply Rollback:
+  trewind undo --apply                # Rollback last command
+  trewind undo 123 --apply            # Rollback command #123
+
+Note: Only commands with --track-files can be rolled back.
+
+================================================================================
+STATISTICS
+--------------------------------------------------------------------------------
+
+View Statistics:
+  trewind stats
+
+Output shows:
+  - Total commands
+  - Successful/Failed count
+  - Success rate
+  - Total sessions
+  - File changes tracked
+  - Database location and size
+
+================================================================================
+CLI FLAGS & OPTIONS
+--------------------------------------------------------------------------------
+
+Global Options:
+  -h, --help                          Show help message
+  --version                           Show version
+
+show:
+  --limit, -n INT                     Number of commands to show
+  --since, -s TEXT                    Time filter (e.g., "10 minutes ago")
+  --session TEXT                      Filter by session ID
+  --errors, -e                        Show only failed commands
+  --verbose, -v                       Show more details
+
+search:
+  pattern                             Search term (required)
+  --limit, -n INT                     Max results (default: 20)
+  --verbose, -v                       Show output snippets
+
+log:
+  command                             Command text (required)
+  --exit-code, -e INT                 Exit code (default: 0)
+  --output, -o TEXT                   Command output
+  --error TEXT                        Error output
+  --cwd TEXT                          Working directory
+  --session TEXT                      Session ID
+  --agent TEXT                        Agent name
+
+record:
+  command                             Command text (required)
+  --execute, -x                       Actually execute the command
+  --track-files, -t                   Track file changes
+  --cwd TEXT                          Working directory
+  --session TEXT                      Session ID
+  --agent TEXT                        Agent name
+
+export:
+  --format, -f                        Format: json, markdown
+  --for-agent TEXT                    Agent name for handoff
+  --session TEXT                      Session ID
+  --output, -o TEXT                   Output file
+  --limit, -n INT                     Max commands (default: 50)
+  --no-output                         Exclude command outputs
+
+undo:
+  command_id                          Optional: specific command ID
+  --dry-run, -d                       Preview only (default)
+  --apply                             Actually perform rollback
+
+start:
+  --name, -n TEXT                     Session name
+  --agent, -a TEXT                    Agent name
+
+sessions:
+  --limit, -n INT                     Number of sessions (default: 10)
+
+================================================================================
+PYTHON API
+--------------------------------------------------------------------------------
+
+Import:
+  from terminalrewind import TerminalRewindDB, CommandRecorder, SessionExporter
+
+Basic Usage:
+  db = TerminalRewindDB()
+  recorder = CommandRecorder(db)
+  
+  recorder.start_session(name="My Session")
+  recorder.log(command="git status", exit_code=0)
+  recorder.end_session()
+  
+  db.close()
+
+Export:
+  exporter = SessionExporter(db)
+  json_data = exporter.to_json()
+  markdown = exporter.to_markdown()
+  handoff = exporter.for_agent("CLIO")
+
+Query:
+  commands = db.get_commands(limit=50)
+  sessions = db.get_sessions()
+  stats = db.get_stats()
+
+================================================================================
+INTEGRATION WITH OTHER TOOLS
+-----------------------------
+
+With SynapseLink:
+  from synapselink import quick_send
+  from terminalrewind import SessionExporter, TerminalRewindDB
+  
+  db = TerminalRewindDB()
+  exporter = SessionExporter(db)
+  
+  handoff = exporter.for_agent("CLIO")
+  quick_send("CLIO", "Session Handoff", handoff)
+
+With AgentHealth:
+  from agenthealth import AgentHealth
+  from terminalrewind import CommandRecorder
+  
+  health = AgentHealth()
+  recorder = CommandRecorder()
+  
+  health.start_session("ATLAS")
+  recorder.start_session(agent_name="ATLAS")
+  # ... work ...
+  health.end_session("ATLAS")
+  recorder.end_session()
+
+================================================================================
+CONFIGURATION
+--------------------------------------------------------------------------------
+
+Database Location:
+  Default: ~/.local/share/TerminalRewind/terminalrewind.db
+  Windows: %LOCALAPPDATA%\TerminalRewind\terminalrewind.db
+
+Backup Location:
+  Default: ~/.local/share/TerminalRewind/backups/
+
+Custom Database:
+  from terminalrewind import TerminalRewindDB
+  db = TerminalRewindDB(Path("/custom/path.db"))
+
+================================================================================
+TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+Error: "Database locked"
+  → Close other trewind processes
+
+Error: "No commands found"
+  → Start a session first: trewind start
+
+Error: "Permission denied"
+  → Check write permissions to database directory
+
+Large Database:
+  → Export important sessions
+  → Compact: sqlite3 db.sqlite "VACUUM"
+
+================================================================================
+KEYBOARD SHORTCUTS (TUI Mode - Future)
+--------------------------------------------------------------------------------
+
+Ctrl+C          Cancel operation
+Ctrl+D          Exit interactive mode
+Tab             Auto-complete
+Up/Down         Command history
+
+================================================================================
+RESOURCES
+--------------------------------------------------------------------------------
+
+Documentation:   AutoProjects/TerminalRewind/README.md
+Examples:        AutoProjects/TerminalRewind/EXAMPLES.md
+Integration:     AutoProjects/TerminalRewind/INTEGRATION_PLAN.md
+Quick Start:     AutoProjects/TerminalRewind/QUICK_START_GUIDES.md
+GitHub:          https://github.com/DonkRonk17/TerminalRewind
+Issues:          https://github.com/DonkRonk17/TerminalRewind/issues
+
+================================================================================
+QUICK REFERENCE
+--------------------------------------------------------------------------------
+
+Most Common Operations:
+
+  # See what happened
+  trewind show
+
+  # Find specific command
+  trewind search "npm install"
+
+  # Export for handoff
+  trewind export --for-agent CLIO > handoff.md
+
+  # Undo last file change
+  trewind undo --apply
+
+  # Check statistics
+  trewind stats
+
+================================================================================
+VERSION HISTORY
+--------------------------------------------------------------------------------
+
+v1.0.0 (2026-01-31)
+  - Initial release
+  - Command recording and logging
+  - File change tracking
+  - Rollback support
+  - Session management
+  - Multi-format export
+  - Agent handoff support
+
+================================================================================

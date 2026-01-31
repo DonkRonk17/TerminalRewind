@@ -1,0 +1,18 @@
+# TerminalRewind Requirements
+# No external dependencies - uses Python standard library only
+
+# Core dependencies (all in stdlib):
+# - sqlite3 (database)
+# - argparse (CLI)
+# - json (data serialization)
+# - pathlib (path handling)
+# - hashlib (file hashing)
+# - shutil (file operations)
+# - subprocess (command execution)
+# - datetime (timestamps)
+# - tempfile (testing)
+# - typing (type hints)
+
+# Development dependencies (optional):
+# pytest>=7.0.0  # For running tests
+# mypy>=1.0.0    # For type checking
