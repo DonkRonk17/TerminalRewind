@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/a4ff805a-acdf-4b4b-959c-8231c2cfc5c3" />
+
 # 🎬 TerminalRewind
 
 **Command+Z for Your Terminal - Never Lose Track of What Happened**
@@ -626,6 +628,9 @@ sqlite3 ~/.local/share/TerminalRewind/terminalrewind.db "VACUUM"
 ```
 
 ---
+
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/261389b8-64af-4d6e-bf5d-1ea9ff948b96" />
+
 
 ## 🤝 Contributing
 
